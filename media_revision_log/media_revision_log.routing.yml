@@ -10,3 +10,14 @@ entity.media.history:
     _admin_route: TRUE
   requirements:
     _permission: 'view media'
+
+
+entity.media.revision_revert_confirm:
+  path: '/media/{media}/revisions/{media_revision}/revert'
+  defaults:
+    _form: '\Drupal\media_revision_log\Form\MediaRevisionRevertForm'
+    _title: 'Revert to earlier revision'
+  requirements:
+    _permission: 'view media'
+  options:
+    _node_operation_route: TRUE
