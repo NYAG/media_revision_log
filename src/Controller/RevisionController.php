@@ -12,9 +12,6 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\media\MediaInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\file\Entity\File;
-use Drupal\Core\Url;
-use Drupal\Core\Link;
 
 /**
  * Returns a response for a media entity route on revisions.
@@ -105,7 +102,7 @@ class RevisionController extends ControllerBase {
     // Sets the title of the revision log for the media and indicates which language translation it is for.
     $build['title'] = $this->t('@langname revisions for %title', ['@langname' => $langname, '%title' => $media->label()]);
     // Sets the amount of columns for the table from the render array.
-    $header = [$this->t('Revision'), $this->t('Operations')];
+    $header = [$this->t('Revision')];
     // Creates a new storage instance of the Media entity.
     $media_storage = $this->entity_manager->getStorage('media');
 
@@ -113,63 +110,27 @@ class RevisionController extends ControllerBase {
     foreach ($this->getRevisionIds($media, $media_storage) as $vid) {
       // Gets the Media revision.
       $revision = $media_storage->loadRevision($vid);
-
-      $media_name = null;
-      $media_link = null;
-      $fieldsValues = [];
-
-      foreach ($revision->getFields() as $fieldName => $field) {
-        if (substr($fieldName, 0, 12) == 'field_media_'){
-          $fid = $revision->$fieldName->target_id;
-          $file = File::load($fid);
-          $file_uri = $file->getFileUri();
-
-          $media_name = $file->filename->value;
-          $media_link = file_create_url($file_uri);
-        }
-        elseif (substr($fieldName, 0, 6) == 'field_'){
-          if ($field->getFieldDefinition()->getType() == 'entity_reference'){
-            switch (get_class($field->entity)) {
-              case 'Drupal\node\Entity\Node':
-                  $fieldsValues[] = $field->getFieldDefinition()->getLabel().' : '.$field->entity->title->value;
-                break;
-              case 'Drupal\taxonomy\Entity\Term':
-                  $fieldsValues[] = $field->getFieldDefinition()->getLabel().' : '.$field->entity->name->value;
-                break;
-            }
-          } else {
-            $fieldsValues[] = $field->getFieldDefinition()->getLabel().' : '.$field->value;
-          }
-        }
-      }
-
       // Gets the timestamp of the revision.
       $changed = $this->getChangedTimestamp($mid, $revision, $language);
       // Filters revisions that are relevant to the language the user is on.
       if ($revision->hasTranslation($language) && $revision->getTranslation($language)->isRevisionTranslationAffected()) {
-
-        $username2 = ($revision->getRevisionUser())? $revision->getRevisionUser()->name->value: null;
+        $username = $revision->getRevisionUser()->realname;
+        $username2 = $revision->getRevisionUser()->name->value;
         $date = date('m/d/Y - H:i', $changed);
         $row = [];
         $column = [
  		      'data' => [
  		        '#type' => 'inline_template',
- 		        '#template' => '{% trans %}{{ date }} by {{ username }}{% endtrans %}{% if fields %}<p>{{ fields|join("<br>")|raw }}</p>{% endif %}{% if media_link %}<p class="revision-log"><a href="{{ media_link }}" target="_blank">{{ media_name }}</a></p>{% endif %}{% if message %}<p class="revision-log">{{ message }}</p>{% endif %}',
+ 		        '#template' => '{% trans %}{{ date }} by {{ username }}{% endtrans %}{% if message %}<p class="revision-log">{{ message }}</p>{% endif %}',
  		        '#context' => [
  		          'date' => $date,
               // Replace $username2 with $username if the users on your site are configured with a realname field (e.g. 'Bruce Yuen' instead of 'bruce.yuen').
  		          'username' => $username2,
-              'media_name' => $media_name,
-              'media_link' => $media_link,
-              'fields' => $fieldsValues,
  		          'message' => ['#markup' => $revision->revision_log_message->value, '#allowed_tags' => Xss::getHtmlTagList()],
  		        ],
  		      ],
         ];
         $row[] = $column;
-
-        $resetUrl = new Url('entity.media.revision_revert_confirm', ['media' => $media->id(), 'media_revision' => $vid]);
-        $row[] = Link::fromTextAndUrl(t('Revert'), $resetUrl);
         $rows[] = $row;
       }
     }
