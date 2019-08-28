@@ -1,0 +1,29 @@
+{
+  "name": "drupal/media_revision_log",
+  "description": "Provides a link to a revision log for media items.",
+  "type": "drupal-module",
+  "keywords": ["Drupal", "Media", "Revision"],
+  "homepage": "https://github.com/NYAG/media_revision_log",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Bruce Yuen (bruceyuen)",
+      "homepage": "https://www.drupal.org/u/bruceyuen",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Thomas Livernet",
+      "homepage": "https://github.com/sinseman",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Eric Steinborn (esteinborn)",
+      "homepage": "https://www.drupal.org/u/esteinborn",
+      "role": "Maintainer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/NYAG/media_revision_log/issues",
+    "source": "git@github.com:NYAG/media_revision_log.git"
+  }
+}
